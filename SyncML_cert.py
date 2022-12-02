@@ -40,7 +40,7 @@ def certxml_create ( addreplace, certURI, certData):
     certxml_Data.text = base64extract (certData)
     build_file = ET.ElementTree( certxml_Start)
     build_file.write("xmlcert.xml")
-    return ET.tostring( certxml_Start, encoding='UTF-8', method='xml')
+    print ("xml file created!")
 
 
 #URI create
