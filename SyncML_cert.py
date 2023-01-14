@@ -49,4 +49,5 @@ def certURI_builder ( isroot, certhash):
     URI = './Device/Vendor/MSFT/RootCATrustedCertificates/'+ isroot +'/'+ certhash +'/EncodedCertificate'
     return URI
 
+print ("Start to create the XML file.")
 certxml_create( 'Add', certURI_builder( 'Root', 'CERTHASH02281810'), 'cert.pem'))
