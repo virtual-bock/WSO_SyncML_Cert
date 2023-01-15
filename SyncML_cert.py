@@ -3,29 +3,24 @@ import uuid
 import xml.etree.ElementTree as ET
 from cryptography.x509 import load_pem_x509_certificate as loadpem
 from cryptography.hazmat.primitives import hashes
+import binascii
 
 # Script for Microsoft RootCATrustedCertificates CSP
-
 
 #Create a random Guid like "1b55c048-38c0-4ac2-ab9a-f3fdf84c8afb"
 def guidcertgen():
     certguid = str(uuid.uuid4())
     return (certguid)
 
-
-#extract the base64 part of the certfile in a single string
+#create a a single base64String without the 'begin' and 'end certificate' string.
 def base64extract():
-#    cert_file_name = os.path.join(os.path.dirname(__file__), certfile)
-#    base64cert = open(cert_file_name, "r")
-#    lines = base64cert.readlines()
     lines = certdatalist[1:-1]
-#    base64cert.close()
-    certlist=[]
+    certstring=[]
     for i in lines:
-        certlist.append(i.rstrip())
-    return ''.join(certlist)
+        certstring.append(i.rstrip())
+    return ''.join(certstring)
 
-#Build the XML
+#Build the CSP structured XML
 def certxml_create (addreplace, certURI):
     certxml_Start = ET.Element (addreplace)
     certxml_Guid = ET.SubElement (certxml_Start, 'CmdID')
@@ -43,32 +38,37 @@ def certxml_create (addreplace, certURI):
     certxml_Data = ET.SubElement (certxml_Item, 'Data')
     certxml_Data.text = base64extract ()
     build_file = ET.ElementTree(certxml_Start)
+    # make it human readable with indentation
     ET.indent(build_file, space="    ", level=0)
     build_file.write("xmlcert.xml")
     print ("finish!")
-
 
 #Check Certificate and create URI
 #Still in development
 def certURI_builder ():
     certcheck = loadpem(bytes(''.join(certdatalist),'UTF-8'))
-    #Sha1 String without spaces
-    fingerSHA1 = str(certcheck.fingerprint(hashes.SHA1()))
-    print ("Der Thumbprint ist: " + fingerSHA1)
+    #SHA1 Fingerprint of the certificate
+    fingerSHA1 = binascii.b2a_hex(certcheck.fingerprint(hashes.SHA1())).decode('UTF-8')
+    #Line below ist for testing
+    #print ("The SHA1-thumbprint is: " + fingerSHA1)
+    #
     # Root or CA
     # issued == issuer = Root
     # issued != issuer = CA
     certType = "Root"
-    print ("The Certificate is:" + certType)    
-    URI = './Device/Vendor/MSFT/RootCATrustedCertificates/'+ certType +'/'+ fingerSHA1 +'/EncodedCertificate'
+    print ("The certificate is:" + certType)    
+    URI = './Device/Vendor/MSFT/RootCATrustedCertificates/'+ certType +'/'+ fingerSHA1.upper() +'/EncodedCertificate'
     return URI
 
-
+# Open the file
+# prepare the environment
+# DERfile handling planed in future
 print ("Reading the certificate")
 cert_file = os.path.join(os.path.dirname(__file__), 'cert.pem')
 base64cert = open(cert_file, "r")
 certdatalist = base64cert.readlines()
 base64cert.close()
 
+#Start XML creation
 print ("Start to create the XML file.")
 certxml_create('Add', certURI_builder())
