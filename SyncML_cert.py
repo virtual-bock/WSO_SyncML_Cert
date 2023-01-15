@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 import xml.etree.ElementTree as ET
 from cryptography.x509 import load_pem_x509_certificate as loadpem
@@ -6,6 +7,8 @@ from cryptography.hazmat.primitives import hashes
 import binascii
 
 # Script for Microsoft RootCATrustedCertificates CSP
+# execute the script with argument filename
+# "SyncML_cert.py cert.pem"
 
 #Create a random Guid like "1b55c048-38c0-4ac2-ab9a-f3fdf84c8afb"
 def guidcertgen():
@@ -70,8 +73,16 @@ def certURI_builder ():
 # prepare the environment
 # DERfile handling planed in future
 print ("Reading the certificate")
-cert_file = os.path.join(os.path.dirname(__file__), 'cert.pem')
-base64cert = open(cert_file, "r")
+cert_file = os.path.join(os.path.dirname(__file__), str(sys.argv[1]))
+try:
+    base64cert = open(cert_file, "r")
+except FileNotFoundError:
+    print ("File not found! Did you have type it correctly?")
+    sys.exit(1)
+except:
+    print ("something went wrong!")
+    sys.exit(1)
+
 certDatalist = base64cert.readlines()
 base64cert.close()
 
