@@ -14,7 +14,7 @@ def guidcertgen():
 
 #create a a single base64String without the 'begin' and 'end certificate' string.
 def base64extract():
-    lines = certdatalist[1:-1]
+    lines = certDatalist[1:-1]
     certstring=[]
     for i in lines:
         certstring.append(i.rstrip())
@@ -43,21 +43,27 @@ def certxml_create (addreplace, certURI):
     build_file.write("xmlcert.xml")
     print ("finish!")
 
-#Check Certificate and create URI
-#Still in development
-def certURI_builder ():
-    certcheck = loadpem(bytes(''.join(certdatalist),'UTF-8'))
-    #SHA1 Fingerprint of the certificate
-    fingerSHA1 = binascii.b2a_hex(certcheck.fingerprint(hashes.SHA1())).decode('UTF-8')
-    #Line below ist for testing
+#Read certificate data
+def readCert ():
+    certCheck = loadpem(bytes(''.join(certDatalist),'UTF-8'))
+    #SHA1 fingerprint of the certificate
+    fingerSHA1 = binascii.b2a_hex(certCheck.fingerprint(hashes.SHA1())).decode('UTF-8')
+    #Line below is for testing
     #print ("The SHA1-thumbprint is: " + fingerSHA1)
-    #
-    # Root or CA
-    # issued == issuer = Root
-    # issued != issuer = CA
-    certType = "Root"
-    print ("The certificate is:" + certType)    
-    URI = './Device/Vendor/MSFT/RootCATrustedCertificates/'+ certType +'/'+ fingerSHA1.upper() +'/EncodedCertificate'
+
+    # is it a root certificate
+    # issuer == subject = Root
+    # issuer != subject = CA
+    if certCheck.issuer == certCheck.subject:
+        certType = "Root"
+    else:
+        certType = "CA"
+    #Line below is for testing
+    #print ("The certificate is:" + certType)
+    return certType + '/' + fingerSHA1.upper()
+
+def certURI_builder ():    
+    URI = './Device/Vendor/MSFT/RootCATrustedCertificates/'+ readCert() +'/EncodedCertificate'
     return URI
 
 # Open the file
@@ -66,7 +72,7 @@ def certURI_builder ():
 print ("Reading the certificate")
 cert_file = os.path.join(os.path.dirname(__file__), 'cert.pem')
 base64cert = open(cert_file, "r")
-certdatalist = base64cert.readlines()
+certDatalist = base64cert.readlines()
 base64cert.close()
 
 #Start XML creation
