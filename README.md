@@ -1,4 +1,7 @@
 # WSO_SyncML_Cert
+This script is for creating a XML file for Workspace ONE UEM Custom settings profile.
+
+
 Microsoft have new way to deploy policys to clients.
 these policys are deployed via SyncML
 
